@@ -46,15 +46,32 @@ export async function launchGame(romSource: string | File): Promise<unknown> {
   }
 }
 
+// Type guard for emulator instance
+interface EmulatorInstance {
+  destroy?: () => void
+  exit?: () => void
+}
+
+function isEmulatorInstance(obj: unknown): obj is EmulatorInstance {
+  return (
+    typeof obj === 'object' &&
+    obj !== null &&
+    (typeof (obj as EmulatorInstance).destroy === 'function' ||
+      typeof (obj as EmulatorInstance).exit === 'function')
+  )
+}
+
 // Clean up emulator instance
 export function cleanupEmulator(instance: unknown) {
   if (!instance) return
 
   try {
-    if (typeof instance.destroy === 'function') {
-      instance.destroy()
-    } else if (typeof instance.exit === 'function') {
-      instance.exit()
+    if (isEmulatorInstance(instance)) {
+      if (typeof instance.destroy === 'function') {
+        instance.destroy()
+      } else if (typeof instance.exit === 'function') {
+        instance.exit()
+      }
     }
   } catch (e) {
     console.log('Không thể destroy instance:', e)
